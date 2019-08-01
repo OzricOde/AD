@@ -6,7 +6,7 @@ def truncate(number, digits) -> float:
     return math.trunc(stepper * number) / stepper
 
 # label = 20
-label = 41
+label = 8
 maxVal = 999999999999999
 minVal = -1
 
@@ -23,11 +23,11 @@ def normalize(value, i):
     return z
 
 # fileToRead = '../datasets/kddcup.data10.featureSelected.csv'
-fileToRead = '../datasets/kddcup.data10.intConverted.csv'
+fileToRead = '../datasets/raw.csv'
 # fileToRead = '../datasets/kddcup.data.intConverted.csv'
 
 # fileToWrite = '../datasets/kddcup.data10.testNormalized.csv'
-fileToWrite = '../datasets/kddcup.data10.normalized.csv'
+fileToWrite = '../datasets/normalized.csv'
 # fileToWrite = '../datasets/kddcup.data.normalized.csv'
 
 
