@@ -2,149 +2,204 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const path = require('path');
-const sql=require('mysql')
-var x,y,z,h,heart,glat,glong
-// var global
-var id=0;
-// console.log(id)
-// // app.use(bodyParser.urlencoded({ extended: true }));
-// // app.use(bodyParser.json());
-// app.use(express.static(path.join(__dirname, 'public')));
+const sql = require('mysql')
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+
+var x, y, z, h, heart, glat, glong
+
+var id = 0;
+
+app.use(express.static(path.join(__dirname, 'public')));
+// app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.json());
 
 
-app.listen(3001, ()=> {
-    console.log('app listening at port 3001');
+
+app.listen(8000, () => {
+  console.log('app listening at port 8000');
 });
 
-var con = sql.createConnection({
+var pool = sql.createPool({
   host: "localhost",
   user: "root",
   password: "",
-  database: "ad"
+  database: "tada"
 });
-con.connect(function(err){
-  if(err){
-    console.log('Error connecting to Db');
-    return;
-  }
-  console.log('Connection established');
-});
-// // con.query('INSERT INTO heart(time,hrate) VALUES(?,?)',[5,7],function(err,result){
-//   if(err) throw err
-//  })
-// con.query("SELECT * FROM acc", function (err, result, fields) {
-//   if (err) throw err;
-//   console.log(result);
-// });
-// con.query('INSERT INTO acc(time,x,y,z) VALUES(?,?,?,?)',[8,4,6,5],function(err,result){
-//   if(err) throw err
-//  })
-// con.query('INSERT INTO gyro(time,x,y,z) VALUES(?,?,?,?)',[5,5,5,5],function(err,result){
-//   if(err) throw err
-//  })
-// var delayInMilliseconds = 5000;
 
-
-app.post('/data', (req, res) => {
-    // console.log("req", req)
-
-
-
-    console.log("data from fitbit")
-    // res.send(JSON.stringify({status:1}))
-    
-    res.send(JSON.stringify({status:1}))
-    
-    console.log(req.headers)
-    
-    
-    if(req.headers.acc){
-      console.log(JSON.parse(req.headers.acc))
-     r=JSON.parse(req.headers.acc)
-      h=r.time
-     x=r.x
-     z=r.z 
-     y=r.y
-     con.query('INSERT INTO acc(time,x,y,z) VALUES(?,?,?,?)',[h,x,y,z],function(err,result){
-      if(err) throw err
-     })
-    }
-
-    if(req.headers.gy){
-    h=r.time
-     x=r.x
-     z=r.z
-     y=r.y
-     con.query('INSERT INTO gyro(time,x,y,z) VALUES(?,?,?,?)',[h,x,y,z],function(err,result){
-      if(err) throw err
-     })
-    }
-    if(req.headers.heart){
-      h=r.time
-       x=r.x
-       con.query('INSERT INTO heart(time,hrate) VALUES(?,?)',[h,x],function(err,result){
-        if(err) throw err
-       })
-      }
-
-
-  })
-
-
-// con.query('INSERT INTO gyro VALUES(3,12,12,12)',function(err,result){
-//   if(err) throw err
-// })
-
-// con.query('INSERT INTO acc VALUES(3,12,12,12)',function(err,result){
-//   if(err) throw err
-// })
-
+var records = [];
 
 app.get('/dispacc', (req, res) => {
-  
+
   var q
-  con.query(`SELECT * FROM acc LIMIT 20 OFFSET ${id}`, function (err, result, fields) {
+  pool.query(`SELECT * FROM acc LIMIT 20 OFFSET ${id}`, function (err, result, fields) {
     if (err) throw err;
-    // console.log(result);
-    // for(var i in result){
-    //   console.log(result[i])
-    // }
-    id=id+20
-     q=JSON.stringify(result)
-    //  for(var i = 0; i < result.length; i++){
-    //    res.redirect('/chart')
-    //  }
-    // res.send(q)
+    id = id + 20
+    q = JSON.stringify(result)
     res.send(`${q}`);
   });
 })
-  app.get('/dispgy', (req, res) => {
-  
-    var q
-    con.query(`SELECT * FROM gyro LIMIT 20 OFFSET ${id}`, function (err, result, fields) {
-      if (err) throw err;
-    
-      // console.log(result);
-      // for(var i in result){
-      //   console.log(result[i])
-      // }
-      id=id+20
-       q=JSON.stringify(result)
-      //  for(var i = 0; i < result.length; i++){
-      //    res.redirect('/chart')
-      //  }
-      // res.send(q)
-      res.send(`${q}`);
-    });
+
+app.get('/dispgy', (req, res) => {
+  var q
+  pool.query(`SELECT * FROM gyro LIMIT 20 OFFSET ${id}`, function (err, result, fields) {
+    if (err) throw err;
+    id = id + 20
+    q = JSON.stringify(result)
+    res.send(`${q}`);
+  });
 })
 
+const csvWriter = createCsvWriter({
+  param:{
+    append:true
+  },
+  path: 'raw.csv',
+  header: [          
+      {id: 'fax', title: 'fax'},
+      {id: 'fay', title: 'fay'},
+      {id: 'faz', title: 'faz'},
+      {id: 'fgx', title: 'fgx'},
+      {id: 'fgy', title: 'fgy'},
+      {id: 'fgz', title: 'fgz'},
+      {id: 'fhrate', title: 'fhrate'},
+      {id: 'foq', title: 'foq'},
+      {id: 'fox', title: 'fox'},
+      {id: 'foy', title: 'foy'},
+      {id: 'foz', title: 'foz'},
+      {id: 'label', title:'label'},
+  ]
+});
 
 app.get('/', function (req, res) {
   res.send('<html><body><h1>Hello World</h1></body></html>');
+  var j = 0;
+  var min = Math.min(fa.length,fg.length,fh.length,fo.length)
+  console.log(fa.length,fg.length,fh.length,fo.length)
+  var label = 'n'
+  for(var i = 0; i < min;  i++){
+    var ir = getRandomInt(min)
+    records[records.length] = {
+      fax:fa[i].x,
+      fay:fa[i].y,
+      faz:fa[i].z,
+      fgx:fg[i].x,
+      fgy:fg[i].y,
+      fgz:fg[i].z,
+      fhrate:fh[i].x,
+      foq:fo[i].q,
+      fox:fo[i].x,
+      foy:fo[i].y,
+      foz:fo[i].z,
+      label:label
+    }
+  }
+    csvWriter.writeRecords(records)       // returns a promise
+    .then(() => {
+        console.log('...Done');
+    });
+    
 });
 
-app.get('/chart',function(req,res){
-    // console.log(path.join(__dirname + '/public/gr.html'))
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
+}
+
+var fa = [] 
+var fg = [] 
+var fh = []
+var fo = []
+var iter = 0;
+
+app.post('/data', (req, res) => {
+    console.log("hitting data")
+    iter = iter + 1   
+    res.send(JSON.stringify({status:1}))  
+    console.log(req.headers.acc) 
+    if(req.headers.acc){
+     r=JSON.parse(req.headers.acc)
+      h=r.time
+      x=r.x
+      z=r.z 
+      y=r.y
+      fa[fa.length] = {
+        h,x,z,y
+      }
+    }
+    if(req.headers.gy){
+      r=JSON.parse(req.headers.gy)
+      h=r.time
+      x=r.x
+      z=r.z
+      y=r.y
+      fg[fg.length] = {
+        h,x,z,y
+      }
+    }
+    if(req.headers.heart){
+      r=JSON.parse(req.headers.heart)
+      h=r.time
+      x=r.x
+      fh[fh.length] = {
+        h,x
+      }
+    }
+    if(req.headers.ori){
+      r=JSON.parse(req.headers.ori)
+      // console.log(r)
+      t=r.time
+      q=r.q
+      x=r.x
+      y=r.y
+      z=r.z
+      fo[fo.length] = {
+        q,x,z,y
+      }
+    }
+})
+
+
+app.get('/chart', function (req, res) {
+  // console.log(path.join(__dirname + '/public/gr.html'))
   res.sendFile(path.join(__dirname + '/public/canvas.html'));
 
+
+})
+
+
+
+// app.post('/sendAudio', (req, res) => {
+  
+//   iter = iter+1;
+//   console.log(iter/3)
+//   console.log(req.body.acc_x)
+//   console.log(req.body.gyro_x)
+//   if(req.body.acc_x){
+//      var obj = {
+//       a:req.body.acc_x,
+//       b:req.body.acc_y,
+//       c:req.body.acc_z, 
+//      }
+//     pa[pa.length]= obj
+//   }
+//   else if(req.body.gyro_x){
+//     var obj = {
+//       a:req.body.gyro_x,
+//       b:req.body.gyro_y,
+//       c:req.body.gyro_z, 
+//      }
+//     pg[pg.length]= obj
+//   } 
+//   else{
+//      var obj = {
+//       a:req.body.mag_x,
+//       b:req.body.mag_y,
+//       c:req.body.mag_z, 
+//      }
+//     pm[pm.length]= obj
+//   }
+// })
+
+
+app.post('/Activity', (req, res) => {
+  console.log(req.body)
 })

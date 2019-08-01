@@ -1,21 +1,37 @@
 {
-  "name": "client",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "fitbit": {
+    "appUUID": "476ed3dd-ff88-4ff6-8065-bf97fe26671a",
+    "appType": "app",
+    "appDisplayName": "nest",
+    "iconFile": "resources/icon.png",
+    "wipeColor": "#8bc34a",
+    "requestedPermissions": [
+      "access_activity",
+      "access_user_profile",
+      "access_heart_rate",
+      "access_location",
+      "access_internet",
+      "run_background",
+      "access_exercise"
+    ],
+    "buildTargets": [
+      "higgs",
+      "meson",
+      "gemini"
+    ],
+    "i18n": {
+      "en": {
+        "name": "nest"
+      }
+    },
+    "defaultLanguage": "en-US"
   },
-  "author": "shreya",
-  "license": "ISC",
+  "devDependencies": {
+    "@fitbit/sdk": "~3.1.0"
+  },
   "dependencies": {
-    "@octokit/request": "^5.0.1",
-    "@octokit/rest": "^16.28.4",
-    "dotenv": "^8.0.0",
+    "csv-writer": "^1.5.0",
     "express": "^4.17.1",
-    "express-session": "^1.16.2",
-    "multer": "^1.4.2",
-    "randomstring": "^1.1.5",
-    "request": "^2.88.0"
+    "mysql": "^2.17.1"
   }
 }
